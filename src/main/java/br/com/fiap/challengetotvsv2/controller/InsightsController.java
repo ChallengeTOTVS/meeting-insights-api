@@ -27,6 +27,6 @@ public class InsightsController {
     public InsightsResponseDto gerarInsights(
             @PathVariable UUID reuniaoId) {
 
-        return insightsService.gerarInsightsFicticios(reuniaoId);
+        return insightsService.gerarInsights(reuniaoId);
     }
 }

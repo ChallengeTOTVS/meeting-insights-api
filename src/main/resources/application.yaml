@@ -16,5 +16,7 @@ spring:
       hibernate:
         format_sql: true
 
-  flyway:
-    enabled: true
+  spring:
+    ai:
+      openai:
+        api-key: ${OPENAI_API_KEY}

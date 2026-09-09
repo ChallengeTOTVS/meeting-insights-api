@@ -39,5 +39,49 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
+    @ExceptionHandler(InsightsAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleInsightsAlreadyExists(
+            InsightsAlreadyExistException exception) {
+
+        ErrorResponse error = ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .message(exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(error);
+    }
+
+    @ExceptionHandler(UsuarioAutenticadoNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsuarioAutenticadoNotFound(
+            UsuarioAutenticadoNotFoundException exception) {
+
+        ErrorResponse error = ErrorResponse.builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message(exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(error);
+    }
+    @ExceptionHandler(TranscricaoVaziaException.class)
+    public ResponseEntity<ErrorResponse> handleTranscricaoVazia(
+            TranscricaoVaziaException exception) {
+
+        ErrorResponse error = ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
+    }
+
 }
 
