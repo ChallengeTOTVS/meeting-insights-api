@@ -15,7 +15,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtService {
 
-    private final String secret = "segredo_qualquer";
+    private final String secret = "segredo-muito-grande-para-testes-do-projeto-totvs-2026";
 
     public String gerarToken(UsuarioEntity usuario) {
 

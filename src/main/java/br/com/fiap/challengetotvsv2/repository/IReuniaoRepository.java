@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface IReuniaoRepository extends JpaRepository<ReuniaoEntity, UUID> {
     //criar find by id do cliente
-    List<ReuniaoEntity> findByClientId(UUID clienteId);
+    List<ReuniaoEntity> findByClienteId(UUID clienteId);
 
     // find by id do usuario
     List<ReuniaoEntity> findByUsuarioId(UUID usuarioId);
@@ -18,7 +18,5 @@ public interface IReuniaoRepository extends JpaRepository<ReuniaoEntity, UUID> {
     //pega o id da reuniao e o id do usuario presente naquela reuniao(FK na tabela) e traz a reuniao que tem esses dois indices
     Optional<ReuniaoEntity> findByIdAndUsuarioId(UUID id, UUID usuarioId);
 
-
-    Optional<UsuarioEntity> findByEmail(String emailUsuario);
 
 }

@@ -92,7 +92,7 @@ public class ReuniaoService {
                 .getAuthentication()
                 .getName();
 
-        UsuarioEntity usuario = reuniaoRepository.findByEmail(emailUsuario)
+        UsuarioEntity usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado"));
 
         ReuniaoEntity reuniao = reuniaoRepository

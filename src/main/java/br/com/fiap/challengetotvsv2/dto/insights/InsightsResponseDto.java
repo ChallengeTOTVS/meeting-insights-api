@@ -9,7 +9,7 @@ import java.util.UUID;
 public record InsightsResponseDto(
         UUID id,
 
-        Long reuniaoId,
+        UUID reuniaoId,
 
         Double scoreChurn,
 
