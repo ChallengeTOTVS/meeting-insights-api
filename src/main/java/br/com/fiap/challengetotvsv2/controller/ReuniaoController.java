@@ -6,8 +6,11 @@ import br.com.fiap.challengetotvsv2.service.ReuniaoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,8 +23,13 @@ public class ReuniaoController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ReuniaoResponseDto cadastrarReuniao(@RequestBody @Valid ReuniaoRequestDto reuniaoRequestDto) {
-        return reuniaoService.cadastrarReuniao(reuniaoRequestDto);
+    public ReuniaoResponseDto cadastrarReuniao(
+            @RequestPart("dados") @Valid ReuniaoRequestDto reuniaoRequestDto,
+            @RequestPart("arquivo") MultipartFile arquivo
+    ) throws IOException {
+        System.out.println("ENTROU NO ENDPOINT MULTIPART");
+
+        return reuniaoService.cadastrarReuniao(reuniaoRequestDto, arquivo);
     }
 
     @ResponseStatus(HttpStatus.OK)

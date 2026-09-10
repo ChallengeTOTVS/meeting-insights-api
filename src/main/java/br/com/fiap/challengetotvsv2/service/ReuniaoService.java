@@ -5,6 +5,7 @@ import br.com.fiap.challengetotvsv2.dto.reuniao.ReuniaoResponseDto;
 import br.com.fiap.challengetotvsv2.enums.StatusReuniao;
 import br.com.fiap.challengetotvsv2.exception.ClienteNotFoundException;
 import br.com.fiap.challengetotvsv2.exception.ReuniaoNotFoundException;
+import br.com.fiap.challengetotvsv2.exception.UsuarioAutenticadoNotFoundException;
 import br.com.fiap.challengetotvsv2.model.ClienteEntity;
 import br.com.fiap.challengetotvsv2.model.ReuniaoEntity;
 import br.com.fiap.challengetotvsv2.model.UsuarioEntity;
@@ -14,7 +15,10 @@ import br.com.fiap.challengetotvsv2.repository.IUsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -29,29 +33,58 @@ public class ReuniaoService {
     private final IUsuarioRepository usuarioRepository;
     private final IReuniaoRepository reuniaoRepository;
 
-    public ReuniaoResponseDto cadastrarReuniao(ReuniaoRequestDto reuniaoRequestDto) {
+    public ReuniaoResponseDto cadastrarReuniao(
+            ReuniaoRequestDto request,
+            MultipartFile arquivo
+    ) {
 
-        String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
+        String emailUsuario = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
 
-        UsuarioEntity usuario = usuarioRepository.findByEmail((emailUsuario))
-                .orElseThrow(() -> new RuntimeException("Usuario autenticado não encontrado"));
+        UsuarioEntity usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(UsuarioAutenticadoNotFoundException::new);
 
-        ClienteEntity cliente = clienteRepository.findById(reuniaoRequestDto.clienteId())
-                .orElseThrow(()-> new ClienteNotFoundException(reuniaoRequestDto.clienteId()));
+        ClienteEntity cliente = clienteRepository
+                .findById(request.clienteId())
+                .orElseThrow(() ->
+                        new ClienteNotFoundException(request.clienteId()));
 
-        ReuniaoEntity reuniao = ReuniaoEntity.builder()
-                .titulo(reuniaoRequestDto.titulo())
-                .dataReuniao(reuniaoRequestDto.dataReuniao())
-                .transcricao(reuniaoRequestDto.transcricao())
-                .cliente(cliente)
-                .usuario(usuario)
-                .status(StatusReuniao.PENDENTE)
-                .dataCriacao(LocalDateTime.now())
-                .build();
+        if (arquivo == null || arquivo.isEmpty()) {
+            throw new RuntimeException("O arquivo está vazio");
+        }
 
-        ReuniaoEntity reuniaoSalva = reuniaoRepository.save(reuniao);
+        try {
 
-        return converterParaResponse(reuniaoSalva);
+            String nomeArquivo = arquivo.getOriginalFilename();
+
+            String transcricao = new String(
+                    arquivo.getBytes(),
+                    StandardCharsets.UTF_8
+            );
+
+            ReuniaoEntity reuniao = ReuniaoEntity.builder()
+                    .titulo(request.titulo())
+                    .dataReuniao(request.dataReuniao())
+                    .nomeArquivo(nomeArquivo)
+                    .transcricao(transcricao)
+                    .cliente(cliente)
+                    .usuario(usuario)
+                    .status(StatusReuniao.PENDENTE)
+                    .dataCriacao(LocalDateTime.now())
+                    .build();
+
+            ReuniaoEntity reuniaoSalva =
+                    reuniaoRepository.save(reuniao);
+
+            return converterParaResponse(reuniaoSalva);
+
+        } catch (IOException exception) {
+            throw new RuntimeException(
+                    "Erro ao ler arquivo de transcrição"
+            );
+        }
     }
 
     private ReuniaoResponseDto converterParaResponse(ReuniaoEntity reuniao) {

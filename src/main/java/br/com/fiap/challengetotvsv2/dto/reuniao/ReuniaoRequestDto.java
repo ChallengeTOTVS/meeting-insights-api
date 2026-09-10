@@ -13,8 +13,6 @@ public record ReuniaoRequestDto(
         @NotBlank
         String titulo,
 
-        String transcricao,
-
         @NotNull
         UUID clienteId,
 
