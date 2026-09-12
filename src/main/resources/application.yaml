@@ -16,7 +16,34 @@ spring:
       hibernate:
         format_sql: true
 
-  spring:
-    ai:
-      openai:
-        api-key: ${OPENAI_API_KEY}
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  ai:
+    openai:
+      max-retries: 0
+      timeout: 180s
+      chat:
+        max-retries: 0
+        timeout: 180s
+      embedding:
+        max-retries: 0
+        timeout: 30s
+      api-key: ${OPENAI_API_KEY}
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        dimensions: 1536
+        max-document-batch-size: 100
+
+logging:
+  file:
+    name: logs/meeting-insights.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      total-size-cap: 100MB

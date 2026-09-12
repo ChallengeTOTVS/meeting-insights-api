@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,9 +31,12 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class ReuniaoService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReuniaoService.class);
+
     private final IClienteRepository clienteRepository;
     private final IUsuarioRepository usuarioRepository;
     private final IReuniaoRepository reuniaoRepository;
+    private final RagService ragService;
 
     public ReuniaoResponseDto cadastrarReuniao(
             ReuniaoRequestDto request,
@@ -77,6 +82,13 @@ public class ReuniaoService {
 
             ReuniaoEntity reuniaoSalva =
                     reuniaoRepository.save(reuniao);
+
+            try {
+                ragService.indexarReuniao(reuniaoSalva);
+            } catch (RuntimeException exception) {
+                LOGGER.warn("Reunião {} salva, mas não foi indexada para RAG: {}",
+                        reuniaoSalva.getId(), exception.getMessage());
+            }
 
             return converterParaResponse(reuniaoSalva);
 
@@ -133,6 +145,21 @@ public class ReuniaoService {
                 .orElseThrow(() -> new ReuniaoNotFoundException(id));
 
         return converterParaResponse(reuniao);
+    }
+
+    public void indexarReuniaoParaRag(UUID id) {
+        String emailUsuario = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        UsuarioEntity usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(UsuarioAutenticadoNotFoundException::new);
+
+        ReuniaoEntity reuniao = reuniaoRepository.findByIdAndUsuarioId(id, usuario.getId())
+                .orElseThrow(() -> new ReuniaoNotFoundException(id));
+
+        ragService.indexarReuniao(reuniao);
     }
 
 

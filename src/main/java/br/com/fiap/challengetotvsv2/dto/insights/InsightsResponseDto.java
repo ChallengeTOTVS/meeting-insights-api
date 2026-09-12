@@ -27,7 +27,9 @@ public record InsightsResponseDto(
 
         String acoesRecomendadas,
 
-        LocalDateTime dataCriacao
+        LocalDateTime dataCriacao,
+        IndividualAnalysisDto analiseIndividual,
+        String estadoAvaliacao
 ) {
 
 }

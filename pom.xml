@@ -27,6 +27,8 @@
 		<url/>
 	</scm>
 	<properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>25</java.version>
 		<spring-ai.version>2.0.1</spring-ai.version>
 	</properties>
@@ -109,6 +111,10 @@
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-openai</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.ai</groupId>

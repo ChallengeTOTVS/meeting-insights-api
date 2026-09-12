@@ -46,4 +46,7 @@ public class InsightEntity {
 
     private LocalDateTime dataCriacao;
 
+    @Column(columnDefinition = "TEXT")
+    private String analiseIndividualJson;
+
 }

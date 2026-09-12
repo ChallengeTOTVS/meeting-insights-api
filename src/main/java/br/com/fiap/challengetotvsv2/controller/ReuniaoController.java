@@ -44,4 +44,10 @@ public class ReuniaoController {
 
         return reuniaoService.buscarReuniaoPorId(id);
     }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping("/{id}/rag/indexacao")
+    public void indexarParaRag(@PathVariable UUID id) {
+        reuniaoService.indexarReuniaoParaRag(id);
+    }
 }

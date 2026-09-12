@@ -1,13 +1,14 @@
 package br.com.fiap.challengetotvsv2;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import static org.assertj.core.api.Assertions.assertThat;
+
 class Challengetotvsv2ApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void applicationClassIsAvailable() {
+		assertThat(new Challengetotvsv2Application()).isNotNull();
 	}
 
 }

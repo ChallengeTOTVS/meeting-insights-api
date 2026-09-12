@@ -8,6 +8,7 @@ public record AnaliseReuniaoDto(
         String resumo,
         String topicosPrincipais,
         String objecoes,
-        String acoesRecomendadas
+        String acoesRecomendadas,
+        IndividualAnalysisDto analiseIndividual
 ) {
 }

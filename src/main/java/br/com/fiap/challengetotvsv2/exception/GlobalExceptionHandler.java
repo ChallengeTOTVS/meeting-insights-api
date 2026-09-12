@@ -83,5 +83,29 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
+    @ExceptionHandler({ReuniaoNotFoundException.class, InsightsNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleRecursoNaoEncontrado(RuntimeException exception) {
+
+        ErrorResponse error = ErrorResponse.builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .message(exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(RagVectorStoreException.class)
+    public ResponseEntity<ErrorResponse> handleRagVectorStore(RagVectorStoreException exception) {
+
+        ErrorResponse error = ErrorResponse.builder()
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .message("Serviço de busca histórica indisponível")
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
 }
 
