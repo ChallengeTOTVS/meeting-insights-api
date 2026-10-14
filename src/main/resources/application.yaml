@@ -1,11 +1,18 @@
 spring:
+  config:
+    import: optional:file:./.env[.properties]
+
+  docker:
+    compose:
+      enabled: ${SPRING_DOCKER_COMPOSE_ENABLED:false}
+
   application:
     name: meeting-insights
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/meeting_insights
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:jdbc:postgresql://localhost:5432/meeting_insights}}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -38,6 +45,13 @@ spring:
         distance-type: COSINE_DISTANCE
         dimensions: 1536
         max-document-batch-size: 100
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+
+server:
+  port: "${PORT:8080}"
 
 logging:
   file:

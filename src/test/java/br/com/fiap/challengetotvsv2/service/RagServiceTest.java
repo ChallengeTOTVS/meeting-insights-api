@@ -138,4 +138,16 @@ class RagServiceTest {
         return java.util.HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(valor.getBytes(StandardCharsets.UTF_8)));
     }
+
+    @Test void availabilityIsReadOnlyAndDetectsChangedTranscript() throws Exception {
+        var meeting = reuniaoComTranscricao("Transcrição original.");
+        when(ragIndexRepository.findByReuniaoId(meeting.getId())).thenReturn(Optional.of(
+                RagIndexEntity.builder().reuniao(meeting).hashTranscricao(hash(meeting.getTranscricao()))
+                        .quantidadeChunks(1).build()));
+        assertThat(ragService.estaIndexada(meeting)).isTrue();
+        meeting.setTranscricao("Transcrição alterada.");
+        assertThat(ragService.estaIndexada(meeting)).isFalse();
+        verifyNoInteractions(vectorStore);
+        verify(ragIndexRepository, never()).save(any());
+    }
 }

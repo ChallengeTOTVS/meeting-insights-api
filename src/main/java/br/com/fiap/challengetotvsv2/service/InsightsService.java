@@ -23,7 +23,9 @@ public class InsightsService {
     private final AnaliseIaService analiseIaService;
     private final IndividualAnalysisJobs jobs;
     private final ObjectMapper mapper;
-    public record State(String status, InsightsResponseDto resultado, String mensagem) {}
+    private final RagService ragService;
+    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(InsightsService.class);
+    public record State(String status, InsightsResponseDto resultado, String mensagem, String retryToken) {}
 
     private ReuniaoEntity authorized(UUID id) {
         var user = usuarioRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())
@@ -40,7 +42,7 @@ public class InsightsService {
         var meeting = authorized(id);
         var saved = insightRepository.findByReuniaoId(id).orElse(null);
         String status = jobs.status(id);
-        if (saved != null && saved.getAnaliseIndividualJson() != null) status = "CONCLUIDO";
+        if (saved != null && saved.getAnaliseIndividualJson() != null && !"PROCESSANDO".equals(status)) status = "CONCLUIDO";
         if (status == null) status = saved != null ? "VERSAO_ANTIGA" : switch (meeting.getStatus()) {
             case PROCESSANDO -> "INTERROMPIDO";
             case ERRO -> "ERRO";
@@ -50,33 +52,41 @@ public class InsightsService {
         return new State(status, saved == null ? null : converterParaResponse(saved), switch (status) {
             case "VERSAO_ANTIGA" -> "Avaliação indisponível nesta versão. Atualizar por IA é opcional e pode consumir tokens.";
             case "PROCESSANDO" -> "Análise em processamento. Consultar o andamento não chama IA.";
-            case "ERRO", "INTERROMPIDO" -> "Falha ou interrupção. Não haverá nova geração automática. Consulte os logs do servidor.";
+            case "ERRO" -> "A análise falhou. Você pode solicitar uma nova tentativa, que pode consumir tokens.";
+            case "INTERROMPIDO" -> "Conclusão não confirmada. Consulte o andamento antes de gerar novamente.";
             case "NAO_GERADO" -> "Análise ainda não gerada.";
             default -> "Análise salva. Esta avaliação usa somente a reunião selecionada.";
-        });
+        }, "ERRO".equals(status) ? jobs.retryToken(id) : null);
     }
     public InsightsResponseDto gerarInsights(UUID id) { return generate(id, false); }
     public InsightsResponseDto atualizarAvaliacao(UUID id) { return generate(id, true); }
 
+    public InsightsResponseDto tentarNovamente(UUID id, String token) {
+        if (token == null || token.isBlank()) throw conflict();
+        return generate(id, true, token);
+    }
+
     private InsightsResponseDto generate(UUID id, boolean upgrade) {
+        return generate(id, upgrade, null);
+    }
+    private InsightsResponseDto generate(UUID id, boolean upgrade, String retryToken) {
         var meeting = authorized(id);
         var existing = insightRepository.findByReuniaoId(id).orElse(null);
         if (existing != null && (!upgrade || existing.getAnaliseIndividualJson() != null))
             return converterParaResponse(existing);
-        if (upgrade && existing == null) throw new InsightsNotFoundException(id);
+        if (upgrade && existing == null && retryToken == null) throw new InsightsNotFoundException(id);
         if (meeting.getTranscricao() == null || meeting.getTranscricao().isBlank()) throw new TranscricaoVaziaException();
         // Legacy interrupted jobs must not be silently resubmitted to a potentially charged provider.
-        if (existing == null && meeting.getStatus() != StatusReuniao.PENDENTE)
+        if (retryToken == null && existing == null && meeting.getStatus() != StatusReuniao.PENDENTE)
             throw conflict();
         // Persistent unique claim survives restarts and protects simultaneous requests across instances.
-        if (!jobs.claim(id)) throw conflict();
+        if (!(retryToken == null ? jobs.claim(id) : jobs.retry(id, retryToken))) throw conflict();
         try {
-            if (!upgrade) {
+            if (existing == null) {
                 meeting.setStatus(StatusReuniao.PROCESSANDO);
                 reuniaoRepository.save(meeting);
             }
-            var analysis = analiseIaService.analisar(meeting.getTranscricao());
-            IndividualAnalysisValidator.validate(analysis, meeting.getTranscricao());
+            var analysis = IndividualAnalysisSanitizer.sanitize(analiseIaService.analisar(meeting.getTranscricao()), meeting.getTranscricao());
             var entity = existing == null ? InsightEntity.builder().reuniao(meeting)
                     .scoreChurn(analysis.scoreChurn()).nivelRisco(analysis.nivelRisco())
                     .justificativaRisco(analysis.justificativaRisco()).sentimentoGeral(analysis.sentimentoGeral())
@@ -88,15 +98,33 @@ public class InsightsService {
             var saved = insightRepository.save(entity);
             meeting.setStatus(StatusReuniao.CONCLUIDA);
             reuniaoRepository.save(meeting);
+            // The paid analysis is already saved. Vector indexing has its own failure boundary.
+            disponibilizarNoHistorico(meeting);
             jobs.finish(id, "CONCLUIDO");
             return converterParaResponse(saved);
         } catch (Exception error) {
             jobs.finish(id, "ERRO");
-            if (!upgrade) {
+            if (existing == null) {
                 meeting.setStatus(StatusReuniao.ERRO);
                 reuniaoRepository.save(meeting);
             }
             throw error;
+        }
+    }
+    private void disponibilizarNoHistorico(ReuniaoEntity meeting) {
+        try {
+            // RagService checks the transcript hash before generating any embeddings.
+            ragService.indexarReuniao(meeting);
+        } catch (RuntimeException error) {
+            LOGGER.warn("Insight salvo; indexação histórica pendente para reunião {}", meeting.getId());
+        }
+    }
+    private Boolean disponibilidadeHistorico(ReuniaoEntity meeting) {
+        try {
+            return ragService.estaIndexada(meeting);
+        } catch (RuntimeException error) {
+            LOGGER.warn("Não foi possível consultar indexação histórica da reunião {}", meeting.getId());
+            return null;
         }
     }
     private ResponseStatusException conflict() {
@@ -110,6 +138,7 @@ public class InsightsService {
                 .scoreChurn(i.getScoreChurn()).nivelRisco(i.getNivelRisco()).justificativaRisco(i.getJustificativaRisco())
                 .sentimentoGeral(i.getSentimentoGeral()).resumo(i.getResumo()).topicosPrincipais(i.getTopicosPrincipais())
                 .objecoes(i.getObjecoes()).acoesRecomendadas(i.getAcoesRecomendadas()).dataCriacao(i.getDataCriacao())
+                .historicoDisponivel(disponibilidadeHistorico(i.getReuniao()))
                 .analiseIndividual(individual).estadoAvaliacao(individual == null ? "VERSAO_ANTIGA" : individual.estado().name()).build();
     }
 }

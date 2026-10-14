@@ -16,9 +16,13 @@ public class HistoricalAnalysisIaService {
 
 
     private final ChatClient chatClient;
+    private final CommercialCatalogService catalogService;
 
     public HistoricalAnalysisDto analisar(ReuniaoEntity reuniao, List<Document> contextoHistorico) {
-        return chatClient.prompt()
+        String context = formatarContexto(contextoHistorico);
+        var catalog = catalogService.relevant(reuniao.getTranscricao() + "\n" + contextoHistorico.stream()
+                .map(Document::getText).reduce("", (a, b) -> a + "\n" + b));
+        var result = chatClient.prompt()
                 .system("""
                         Você é um analista de Customer Success e vendas B2B.
                         Analise somente a transcrição atual e os excertos históricos fornecidos.
@@ -58,21 +62,30 @@ public class HistoricalAnalysisIaService {
                         - Para tendências de sentimento e churn, explique os fatores observados, sem alegar causalidade não documentada.
                         - Em compromissos, registre apenas compromisso, responsável, prazo e status aparente quando constarem no texto.
                         - Não repita uma referencia inexistente. Use exclusivamente as REFERENCIAS disponibilizadas.
-                        """)
+                        """ + ProductsAnalysisPrompt.RULES + "\n<CATALOGO_COMERCIAL>\n"
+                        + catalogService.prompt(catalog) + "\n</CATALOGO_COMERCIAL>")
                 .user("""
                         <TRANSCRICAO_ATUAL>
-                        [REFERENCIA: ATUAL]
+                        [REFERENCIA: ATUAL | DATA: %s]
                         %s
                         </TRANSCRICAO_ATUAL>
 
                         <CONTEXTO_HISTORICO>
                         %s
                         </CONTEXTO_HISTORICO>
-                        """.formatted(reuniao.getTranscricao(), formatarContexto(contextoHistorico)))
+                        """.formatted(reuniao.getDataReuniao(), reuniao.getTranscricao(), context))
                 .call()
                 .entity(HistoricalAnalysisDto.class, spec -> spec
                         .useProviderStructuredOutput()
                         );
+        if (result == null) return null;
+        var sources = new java.util.LinkedHashMap<String, ProductsAnalysisSanitizer.Source>();
+        sources.put("ATUAL", new ProductsAnalysisSanitizer.Source(reuniao.getTranscricao(),
+                reuniao.getDataReuniao().toString(), reuniao.getId().toString()));
+        contextoHistorico.forEach(d -> sources.put(d.getMetadata().get("referencia").toString(),
+                new ProductsAnalysisSanitizer.Source(d.getText(), d.getMetadata().get("dataReuniao").toString(),
+                        d.getMetadata().get("reuniaoId").toString())));
+        return result.withProducts(ProductsAnalysisSanitizer.sanitize(result.produtosExperiencias(), catalog, sources));
     }
 
     private String formatarContexto(List<Document> documentos) {

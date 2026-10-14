@@ -3,6 +3,8 @@ package br.com.fiap.challengetotvsv2.controller;
 import br.com.fiap.challengetotvsv2.dto.cliente.ClienteRequestDto;
 import br.com.fiap.challengetotvsv2.dto.cliente.ClienteResponseDto;
 import br.com.fiap.challengetotvsv2.service.ClienteService;
+import br.com.fiap.challengetotvsv2.service.ClientContextService;
+import br.com.fiap.challengetotvsv2.dto.cliente.ClientContextResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import java.util.UUID;
 public class ClienteController {
 
     private final ClienteService clienteService;
+    private final ClientContextService clientContextService;
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
@@ -28,6 +31,11 @@ public class ClienteController {
     @ResponseStatus(HttpStatus.OK)
     public List<ClienteResponseDto> listarTodosClientes() {
         return clienteService.listarTodos();
+    }
+
+    @GetMapping("/{id}/contexto")
+    public ClientContextResponseDto consultarContexto(@PathVariable UUID id) {
+        return clientContextService.consultar(id);
     }
 
     @GetMapping("/{id}")

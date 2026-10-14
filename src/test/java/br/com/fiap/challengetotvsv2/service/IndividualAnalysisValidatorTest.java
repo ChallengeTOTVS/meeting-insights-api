@@ -3,6 +3,34 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 class IndividualAnalysisValidatorTest {
+    @Test void formattingDifferencesDoNotRejectRealEvidence() {
+        String formatted = IndividualFixtures.TRANSCRIPT.replace(" ", "\u00a0\r\n\t");
+        assertThatCode(() -> IndividualAnalysisValidator.validate(IndividualFixtures.analysis(), formatted))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> IndividualAnalysisValidator.validate(IndividualFixtures.withEvidence(formatted), IndividualFixtures.TRANSCRIPT))
+                .doesNotThrowAnyException();
+    }
+    @Test void equivalentUnicodeAccentsAreAccepted() {
+        String decomposed = java.text.Normalizer.normalize(IndividualFixtures.TRANSCRIPT, java.text.Normalizer.Form.NFD);
+        assertThatCode(() -> IndividualAnalysisValidator.validate(IndividualFixtures.analysis(), decomposed)).doesNotThrowAnyException();
+    }
+    @Test void quoteTypographyIsNormalizedWithoutRemovingPunctuation() {
+        assertThat(IndividualAnalysisValidator.normalize("Ele disse: “sim”.")).isEqualTo("Ele disse: \"sim\".");
+        assertThat(IndividualAnalysisValidator.normalize("Não, aprovado.")).isNotEqualTo(IndividualAnalysisValidator.normalize("Não aprovado."));
+    }
+    @Test void changedNumbersNegationsAndNonContiguousQuotesRemainRejected() {
+        for (String quote : java.util.List.of(
+                "Bruno (vendedor): Entrega em 20 dias.",
+                "Bruno (vendedor): Não entrega em 10 dias.",
+                "Ana: Aprovado. Ana: Qual o preço?")) {
+            assertThatThrownBy(() -> IndividualAnalysisValidator.validate(IndividualFixtures.withEvidence(quote), IndividualFixtures.TRANSCRIPT))
+                    .hasMessageContaining("Trecho não encontrado").hasMessageContaining("evidência 1");
+        }
+    }
+    @Test void emptyEvidenceHasSpecificError() {
+        assertThatThrownBy(() -> IndividualAnalysisValidator.validate(IndividualFixtures.withEvidence("\u00a0\n"), IndividualFixtures.TRANSCRIPT))
+                .hasMessageContaining("Trecho de evidência vazio");
+    }
     @Test void firstMeetingHasCompletePartialAndUnansweredQuestionsWithoutHistory() {
         var a = IndividualFixtures.analysis();
         assertThatCode(() -> IndividualAnalysisValidator.validate(a, IndividualFixtures.TRANSCRIPT)).doesNotThrowAnyException();

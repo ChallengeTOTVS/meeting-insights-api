@@ -3,7 +3,7 @@ package br.com.fiap.challengetotvsv2.service;
 import br.com.fiap.challengetotvsv2.model.UsuarioEntity;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -12,10 +12,10 @@ import java.util.Date;
 
 // essa calsse separa a responsabilidade de gerar o token
 @Service
-@RequiredArgsConstructor
 public class JwtService {
 
-    private final String secret = "segredo-muito-grande-para-testes-do-projeto-totvs-2026";
+    @Value("${app.jwt.secret}")
+    private String secret;
 
     public String gerarToken(UsuarioEntity usuario) {
 

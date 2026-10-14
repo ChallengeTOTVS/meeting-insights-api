@@ -31,6 +31,15 @@ public class RagService {
     private final VectorStore vectorStore;
     private final IRagIndexRepository ragIndexRepository;
 
+    /** Read-only status check: no embeddings or model calls. */
+    public boolean estaIndexada(ReuniaoEntity reuniao) {
+        if (reuniao.getTranscricao() == null || reuniao.getTranscricao().isBlank()) return false;
+        String hash = calcularHash(reuniao.getTranscricao());
+        return ragIndexRepository.findByReuniaoId(reuniao.getId())
+                .filter(index -> hash.equals(index.getHashTranscricao()) && index.getQuantidadeChunks() > 0)
+                .isPresent();
+    }
+
     @Transactional
     public void indexarReuniao(ReuniaoEntity reuniao) {
         validarTranscricao(reuniao);
@@ -129,7 +138,8 @@ public class RagService {
                 reuniao.getTitulo() + "\n" + trechoAtual,
                 "objeções, dúvidas repetidas, pendências, problemas sem resolução, "
                         + "risco de churn, sentimento e prioridades do cliente",
-                "compromissos, prazos, responsáveis, proposta comercial, preço, concorrentes e próximos passos"
+                "compromissos, prazos, responsáveis, proposta comercial, preço, concorrentes, produtos TOTVS, "
+                        + "experiências de uso, implantação, integração, suporte, custo e próximos passos"
         );
     }
 

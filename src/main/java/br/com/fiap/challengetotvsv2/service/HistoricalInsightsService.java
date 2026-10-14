@@ -58,7 +58,7 @@ public class HistoricalInsightsService {
         var evidencias = new java.util.ArrayList<>(contexto.stream().map(this::paraEvidencia).toList());
         evidencias.add(new HistoricalEvidenceDto("ATUAL", reuniao.getId(), reuniao.getDataReuniao(),
                 reuniao.getTitulo(), reuniao.getTranscricao()));
-        HistoricalAnalysisValidator.validate(analise, evidencias);
+        analise = HistoricalAnalysisSanitizer.sanitize(analise, evidencias);
         return new HistoricalInsightsResponseDto(
                 reuniao.getId(),
                 reuniao.getCliente().getId(),

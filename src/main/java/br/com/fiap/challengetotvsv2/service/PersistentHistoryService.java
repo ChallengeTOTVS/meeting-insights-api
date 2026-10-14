@@ -21,27 +21,33 @@ public class PersistentHistoryService {
     private final IUsuarioRepository users;
     private final IReuniaoRepository meetings;
     private final IInsightRepository insights;
+    private final RagService rag;
+    private final IndividualAnalysisJobs individualJobs;
     private final ExecutorService executor = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
             new ArrayBlockingQueue<>(20), new ThreadPoolExecutor.AbortPolicy());
 
-    public record State(String status, HistoricalInsightsResponseDto resultado, String mensagem) {}
-    private record Job(String status, String resultado) {}
+    public record State(String status, HistoricalInsightsResponseDto resultado, String mensagem, String etapa) {}
+    private record Job(String status, String resultado, String etapa) {}
 
     public PersistentHistoryService(JdbcTemplate jdbc, ObjectMapper mapper, HistoricalInsightsService generator,
-            IUsuarioRepository users, IReuniaoRepository meetings, IInsightRepository insights) {
+            IUsuarioRepository users, IReuniaoRepository meetings, IInsightRepository insights,
+            RagService rag, IndividualAnalysisJobs individualJobs) {
         this.jdbc = jdbc;
         this.mapper = mapper;
         this.generator = generator;
         this.users = users;
         this.meetings = meetings;
         this.insights = insights;
+        this.rag = rag;
+        this.individualJobs = individualJobs;
     }
 
     @jakarta.annotation.PostConstruct
     void initializeStorage() {
         // Existing installations may not enable Flyway auto-configuration.
         new org.springframework.jdbc.datasource.init.ResourceDatabasePopulator(
-                new org.springframework.core.io.ClassPathResource("db/migration/V2__historical_analysis_jobs.sql"))
+                new org.springframework.core.io.ClassPathResource("db/migration/V2__historical_analysis_jobs.sql"),
+                new org.springframework.core.io.ClassPathResource("db/migration/V4__historical_progress.sql"))
                 .execute(java.util.Objects.requireNonNull(jdbc.getDataSource()));
     }
 
@@ -54,9 +60,9 @@ public class PersistentHistoryService {
 
     public State consultar(UUID id) {
         var meeting = authorized(id);
-        var jobs = jdbc.query("SELECT CASE WHEN status='PROCESSANDO' AND criado_em < CURRENT_TIMESTAMP - INTERVAL '15 minutes' THEN 'INTERROMPIDO' ELSE status END AS status, resultado FROM historical_analysis_job WHERE reuniao_id = ?",
-                (rs, n) -> new Job(rs.getString(1), rs.getString(2)), id);
-        if (jobs.isEmpty()) return new State("NAO_GERADO", base(meeting), "A evolução disponível já pode ser consultada. A análise por IA é opcional.");
+        var jobs = jdbc.query("SELECT CASE WHEN status='PROCESSANDO' AND criado_em < CURRENT_TIMESTAMP - INTERVAL '15 minutes' THEN 'INTERROMPIDO' ELSE status END AS status, resultado, etapa FROM historical_analysis_job WHERE reuniao_id = ?",
+                (rs, n) -> new Job(rs.getString(1), rs.getString(2), rs.getString(3)), id);
+        if (jobs.isEmpty()) return new State("NAO_GERADO", base(meeting), "A evolução disponível já pode ser consultada. A análise por IA é opcional.", "AGUARDANDO");
         var job = jobs.getFirst();
         var result = job.resultado() == null ? base(meeting)
                 : mapper.readValue(job.resultado(), HistoricalInsightsResponseDto.class);
@@ -64,36 +70,46 @@ public class PersistentHistoryService {
             case "PROCESSANDO" -> "Análise em andamento. Você pode sair desta página; o resultado será salvo.";
             case "ERRO", "INTERROMPIDO" -> "A análise não foi concluída. Novas gerações estão bloqueadas para evitar cobranças repetidas. Consulte os logs do servidor.";
             default -> "Resultado salvo. Consultar novamente não gera outra análise.";
-        });
+        }, job.etapa());
     }
 
     public State iniciar(UUID id) {
         var meeting = authorized(id);
-        // A database primary key makes repeated clicks, tabs and HTTP retries idempotent.
-        int claimed = jdbc.update("INSERT INTO historical_analysis_job (reuniao_id,status) VALUES (?, 'PROCESSANDO') ON CONFLICT (reuniao_id) DO NOTHING", id);
+        // Historical generation must follow the first saved individual insight and its indexing attempt.
+        if (insights.findByReuniaoId(id).isEmpty() || "PROCESSANDO".equals(individualJobs.status(id))) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,
+                    "Aguarde a conclusão dos insights individuais e da preparação do histórico.");
+        }
+        // Repeated clicks, tabs and HTTP retries cannot start another paid generation.
+        int claimed = jdbc.update("INSERT INTO historical_analysis_job (reuniao_id,status,etapa) VALUES (?, 'PROCESSANDO', 'INDEXANDO_RAG') ON CONFLICT (reuniao_id) DO NOTHING", id);
         if (claimed == 1) {
             try {
-                Integer previous = jdbc.queryForObject("""
-                    SELECT count(*) FROM reuniao r JOIN rag_index i ON i.reuniao_id=r.id
-                    WHERE r.cliente_id=? AND r.usuario_id=? AND r.data_reuniao<?
-                    """, Integer.class, meeting.getCliente().getId(), meeting.getUsuario().getId(), meeting.getDataReuniao());
-                if (previous == null || previous == 0) {
-                    save(id, base(meeting)); // No embeddings or LLM call when no indexed history exists.
-                } else {
-                    var auth = SecurityContextHolder.getContext().getAuthentication();
-                    executor.execute(() -> {
-                        var context = SecurityContextHolder.createEmptyContext();
-                        context.setAuthentication(auth);
-                        SecurityContextHolder.setContext(context);
-                        try {
-                            save(id, generator.gerarHistorico(id));
-                        } catch (Exception error) {
-                            failed(id, error);
-                        } finally {
-                            SecurityContextHolder.clearContext();
-                        }
-                    });
-                }
+                // Initialize metadata while the request's persistence context is still open.
+                meeting.getCliente().getNome();
+                var auth = SecurityContextHolder.getContext().getAuthentication();
+                executor.execute(() -> {
+                    var context = SecurityContextHolder.createEmptyContext();
+                    context.setAuthentication(auth);
+                    SecurityContextHolder.setContext(context);
+                    try {
+                        progress(id, "INDEXANDO_RAG");
+                        // Also repairs missing indexing for legacy insights, without regenerating the insight.
+                        // The transcript hash makes an already indexed meeting a no-op.
+                        rag.indexarReuniao(meeting);
+                        progress(id, "ANALISANDO_HISTORICO");
+                        Integer previous = jdbc.queryForObject("""
+                            SELECT count(*) FROM reuniao r JOIN rag_index i ON i.reuniao_id=r.id
+                            WHERE r.cliente_id=? AND r.usuario_id=? AND r.data_reuniao<?
+                            """, Integer.class, meeting.getCliente().getId(), meeting.getUsuario().getId(), meeting.getDataReuniao());
+                        var result = previous == null || previous == 0 ? base(meeting) : generator.gerarHistorico(id);
+                        progress(id, "SALVANDO_RESULTADO");
+                        save(id, result);
+                    } catch (Exception error) {
+                        failed(id, error);
+                    } finally {
+                        SecurityContextHolder.clearContext();
+                    }
+                });
             } catch (Exception error) {
                 failed(id, error);
             }
@@ -112,8 +128,12 @@ public class PersistentHistoryService {
                 scores, null, List.of());
     }
 
+    private void progress(UUID id, String stage) {
+        jdbc.update("UPDATE historical_analysis_job SET etapa=?, atualizado_em=CURRENT_TIMESTAMP WHERE reuniao_id=? AND status='PROCESSANDO'", stage, id);
+    }
+
     private void save(UUID id, HistoricalInsightsResponseDto result) {
-        jdbc.update("UPDATE historical_analysis_job SET status='CONCLUIDO', resultado=?, atualizado_em=CURRENT_TIMESTAMP WHERE reuniao_id=?",
+        jdbc.update("UPDATE historical_analysis_job SET status='CONCLUIDO', etapa='CONCLUIDO', resultado=?, atualizado_em=CURRENT_TIMESTAMP WHERE reuniao_id=?",
                 mapper.writeValueAsString(result), id);
     }
 

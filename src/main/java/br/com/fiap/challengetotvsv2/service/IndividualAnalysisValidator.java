@@ -2,6 +2,7 @@ package br.com.fiap.challengetotvsv2.service;
 
 import br.com.fiap.challengetotvsv2.dto.insights.*;
 import java.util.*;
+import java.text.Normalizer;
 import static br.com.fiap.challengetotvsv2.dto.insights.IndividualAnalysisDto.*;
 
 /** Reject unverifiable quotes/references without issuing another model call. */
@@ -9,15 +10,25 @@ public final class IndividualAnalysisValidator {
     private IndividualAnalysisValidator() {}
     public static void validate(AnaliseReuniaoDto result, String transcript) {
         require(result != null && result.analiseIndividual() != null, "Análise individual ausente");
+        require(transcript != null && !transcript.isBlank(), "Transcrição ausente");
+        String normalizedTranscript = normalize(transcript);
         var a = result.analiseIndividual();
         require(a.versao() == 2 && a.estado() != null, "Versão/estado inválido");
         Set<String> evidence = new HashSet<>();
+        int position = 0;
         for (var e : list(a.evidencias())) {
-            require(e != null && e.id() != null && evidence.add(e.id()) && e.trecho() != null
-                    && !e.trecho().isBlank() && transcript.contains(e.trecho()), "Trecho não encontrado na transcrição");
+            position++;
+            // Report the position, never transcript/customer content in logs.
+            String location = " (evidência " + position + ")";
+            require(e != null, "Evidência nula" + location);
+            require(e.id() != null && !e.id().isBlank(), "ID de evidência ausente" + location);
+            require(evidence.add(e.id()), "ID de evidência repetido" + location);
+            require(e.trecho() != null && !normalize(e.trecho()).isBlank(), "Trecho de evidência vazio" + location);
+            require(normalizedTranscript.contains(normalize(e.trecho())),
+                    "Trecho não encontrado na transcrição após normalização de formatação" + location);
         }
         refs(a.evidenciasVendedor(), evidence, a.vendedor() != null);
-        if (a.vendedor() != null) require(transcript.contains(a.vendedor()), "Vendedor não identificado na transcrição");
+        if (a.vendedor() != null) require(contains(normalizedTranscript, a.vendedor()), "Vendedor não identificado na transcrição");
         conclusion(a.resultadoReuniao(), evidence);
         conclusion(a.situacaoCliente(), evidence);
         Set<String> interactions = new HashSet<>();
@@ -36,8 +47,8 @@ public final class IndividualAnalysisValidator {
             require(c != null && c.situacao() != null, "Compromisso inválido");
             refs(c.referencias(), evidence, true);
             require(c.interacaoId() == null || interactions.contains(c.interacaoId()), "Interação inexistente");
-            require(c.responsavel() == null || transcript.contains(c.responsavel()), "Responsável sem evidência");
-            require(c.prazo() == null || transcript.contains(c.prazo()), "Prazo sem evidência");
+            require(c.responsavel() == null || contains(normalizedTranscript, c.responsavel()), "Responsável sem evidência");
+            require(c.prazo() == null || contains(normalizedTranscript, c.prazo()), "Prazo sem evidência");
         }
         require(a.relacionamento() != null && a.relacionamento().estado() != null, "Categoria ausente");
         list(a.relacionamento().itens()).forEach(c -> conclusion(c, evidence));
@@ -50,6 +61,18 @@ public final class IndividualAnalysisValidator {
         list(d.melhorias()).forEach(c -> conclusion(c, evidence));
         list(d.antesDaProximaReuniao()).forEach(c -> conclusion(c, evidence));
         require(pending.containsAll(list(d.pendenciasPrioritarias())), "Prioridade sem pendência correspondente");
+    }
+    private static boolean contains(String normalizedTranscript, String value) {
+        var normalized = normalize(value);
+        return !normalized.isBlank() && normalizedTranscript.contains(normalized);
+    }
+    static String normalize(String text) {
+        // Only presentation equivalents. Preserve words, accents, case, numbers and punctuation.
+        // Never use fuzzy matching, remove negations, or join non-contiguous excerpts.
+        return Normalizer.normalize(text, Normalizer.Form.NFC)
+                .replace('\u201c', '"').replace('\u201d', '"')
+                .replace('\u2018', '\'').replace('\u2019', '\'')
+                .replaceAll("[\\p{Z}\\s]+", " ").strip();
     }
     private static void conclusion(Conclusao c, Set<String> evidence) {
         require(c != null && c.texto() != null && !c.texto().isBlank(), "Conclusão ausente");

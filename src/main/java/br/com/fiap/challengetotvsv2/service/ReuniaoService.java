@@ -16,8 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,8 +28,6 @@ import static java.util.stream.Collectors.toList;
 @Service
 @RequiredArgsConstructor
 public class ReuniaoService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReuniaoService.class);
 
     private final IClienteRepository clienteRepository;
     private final IUsuarioRepository usuarioRepository;
@@ -82,13 +78,6 @@ public class ReuniaoService {
 
             ReuniaoEntity reuniaoSalva =
                     reuniaoRepository.save(reuniao);
-
-            try {
-                ragService.indexarReuniao(reuniaoSalva);
-            } catch (RuntimeException exception) {
-                LOGGER.warn("Reunião {} salva, mas não foi indexada para RAG: {}",
-                        reuniaoSalva.getId(), exception.getMessage());
-            }
 
             return converterParaResponse(reuniaoSalva);
 

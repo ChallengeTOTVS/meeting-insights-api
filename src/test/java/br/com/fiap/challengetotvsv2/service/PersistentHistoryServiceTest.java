@@ -21,6 +21,8 @@ class PersistentHistoryServiceTest {
     private final IUsuarioRepository users = mock(IUsuarioRepository.class);
     private final IReuniaoRepository meetings = mock(IReuniaoRepository.class);
     private final IInsightRepository insights = mock(IInsightRepository.class);
+    private final RagService rag = mock(RagService.class);
+    private final IndividualAnalysisJobs individualJobs = mock(IndividualAnalysisJobs.class);
     private final UUID id = UUID.randomUUID();
     private PersistentHistoryService service;
 
@@ -40,7 +42,8 @@ class PersistentHistoryServiceTest {
                 new UsernamePasswordAuthenticationToken(user.getEmail(), null, List.of()));
         when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(meetings.findByIdAndUsuarioId(id, user.getId())).thenReturn(Optional.of(meeting));
-        service = new PersistentHistoryService(jdbc, JsonMapper.builder().build(), generator, users, meetings, insights);
+        when(insights.findByReuniaoId(id)).thenReturn(Optional.of(InsightEntity.builder().reuniao(meeting).build()));
+        service = new PersistentHistoryService(jdbc, JsonMapper.builder().build(), generator, users, meetings, insights, rag, individualJobs);
     }
 
     @AfterEach
@@ -71,7 +74,7 @@ class PersistentHistoryServiceTest {
         when(jdbc.queryForObject(anyString(), eq(Integer.class), any(), any(), any())).thenReturn(0);
         service.iniciar(id);
         verifyNoInteractions(generator);
-        verify(jdbc).update(startsWith("UPDATE historical_analysis_job SET status='CONCLUIDO'"), anyString(), eq(id));
+        verify(jdbc, timeout(3000)).update(startsWith("UPDATE historical_analysis_job SET status='CONCLUIDO'"), anyString(), eq(id));
     }
 
     @Test
@@ -103,5 +106,50 @@ class PersistentHistoryServiceTest {
         verify(jdbc, timeout(3000)).update(startsWith("UPDATE historical_analysis_job SET status='ERRO'"), eq(id));
         service.iniciar(id);
         verify(generator, times(1)).gerarHistorico(id);
-    }}
-
+    }
+    @Test void historicalGenerationRequiresIndividualInsightAndWaitsForIndexingAttempt() {
+        when(insights.findByReuniaoId(id)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.iniciar(id)).isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        verifyNoInteractions(rag, generator, jdbc);
+        when(insights.findByReuniaoId(id)).thenReturn(Optional.of(new InsightEntity()));
+        when(individualJobs.status(id)).thenReturn("PROCESSANDO");
+        assertThatThrownBy(() -> service.iniciar(id)).isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        verifyNoInteractions(rag, generator, jdbc);
+    }
+    @Test void ragFailureBlocksHistoricalAiAndPersistsFailure() {
+        when(jdbc.update(startsWith("INSERT"), eq(id))).thenReturn(1);
+        doThrow(new IllegalStateException("index unavailable")).when(rag).indexarReuniao(any());
+        service.iniciar(id);
+        verify(jdbc, timeout(3000)).update(startsWith("UPDATE historical_analysis_job SET status='ERRO'"), eq(id));
+        verifyNoInteractions(generator);
+        verify(jdbc, never()).queryForObject(anyString(), eq(Integer.class), any(), any(), any());
+    }
+    @Test void indexPrecedesHistoricalAiAndProgressIsPersisted() {
+        when(jdbc.update(startsWith("INSERT"), eq(id))).thenReturn(1);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), any(), any(), any())).thenReturn(2);
+        when(generator.gerarHistorico(id)).thenReturn(new br.com.fiap.challengetotvsv2.dto.insights.HistoricalInsightsResponseDto(
+                id, UUID.randomUUID(), true, "ready", List.of(), null, List.of()));
+        service.iniciar(id);
+        verify(jdbc, timeout(3000)).update(startsWith("UPDATE historical_analysis_job SET status='CONCLUIDO'"), contains("ready"), eq(id));
+        var order = inOrder(rag, generator);
+        order.verify(rag).indexarReuniao(any());
+        order.verify(generator).gerarHistorico(id);
+        verify(jdbc).update(startsWith("UPDATE historical_analysis_job SET etapa="), eq("INDEXANDO_RAG"), eq(id));
+        verify(jdbc).update(startsWith("UPDATE historical_analysis_job SET etapa="), eq("ANALISANDO_HISTORICO"), eq(id));
+        verify(jdbc).update(startsWith("UPDATE historical_analysis_job SET etapa="), eq("SALVANDO_RESULTADO"), eq(id));
+    }
+    @Test void pollingReturnsSavedStageWithoutStartingWork() {
+        when(jdbc.query(anyString(), any(RowMapper.class), eq(id))).thenAnswer(call -> {
+            RowMapper<?> row = call.getArgument(1);
+            var rs = mock(java.sql.ResultSet.class);
+            when(rs.getString(1)).thenReturn("PROCESSANDO");
+            when(rs.getString(3)).thenReturn("SALVANDO_RESULTADO");
+            return List.of(row.mapRow(rs, 0));
+        });
+        var result = service.consultar(id);
+        assertThat(result.status()).isEqualTo("PROCESSANDO");
+        assertThat(result.etapa()).isEqualTo("SALVANDO_RESULTADO");
+        verifyNoInteractions(rag, generator);
+        verify(jdbc, never()).update(anyString(), any(Object[].class));
+    }
+}

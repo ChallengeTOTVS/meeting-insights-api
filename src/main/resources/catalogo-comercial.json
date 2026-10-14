@@ -1,0 +1,697 @@
+{
+  "versao": "2026-10-06.1",
+  "entradas": [
+    {
+      "id": "totvs-protheus",
+      "nome": "TOTVS Backoffice – Linha Protheus",
+      "fornecedor": "TOTVS",
+      "tipo": "TOTVS",
+      "apelidos": [
+        "Protheus",
+        "TOTVS Protheus",
+        "ERP Protheus"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "totvs-datasul",
+      "nome": "TOTVS Backoffice – Linha Datasul",
+      "fornecedor": "TOTVS",
+      "tipo": "TOTVS",
+      "apelidos": [
+        "Datasul",
+        "TOTVS Datasul",
+        "ERP Datasul"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "totvs-rm",
+      "nome": "TOTVS Backoffice – Linha RM",
+      "fornecedor": "TOTVS",
+      "tipo": "TOTVS",
+      "apelidos": [
+        "RM",
+        "TOTVS RM",
+        "ERP RM"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "totvs-logix",
+      "nome": "TOTVS Backoffice – Linha Logix",
+      "fornecedor": "TOTVS",
+      "tipo": "TOTVS",
+      "apelidos": [
+        "Logix",
+        "TOTVS Logix",
+        "ERP Logix"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "totvs",
+      "nome": "Produto não especificado",
+      "fornecedor": "TOTVS",
+      "tipo": "TOTVS",
+      "apelidos": [
+        "TOTVS"
+      ],
+      "segmento": null,
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "sap-b1",
+      "nome": "SAP Business One",
+      "fornecedor": "SAP",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "SAP Business One",
+        "SAP B1",
+        "Business One"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://www.sap.com/brazil/products/erp/business-one.html",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "sap",
+      "nome": "Produto não especificado",
+      "fornecedor": "SAP",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "SAP"
+      ],
+      "segmento": null,
+      "fontes": [
+        {
+          "url": "https://www.sap.com/brazil/products/erp/business-one.html",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "senior-erp",
+      "nome": "ERP Senior",
+      "fornecedor": "Senior Sistemas",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "ERP Senior",
+        "Senior ERP",
+        "Gestão Empresarial ERP"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://site.senior.com.br/erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "senior",
+      "nome": "Produto não especificado",
+      "fornecedor": "Senior Sistemas",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "Senior",
+        "Senior Sistemas"
+      ],
+      "segmento": null,
+      "fontes": [
+        {
+          "url": "https://www.senior.com.br/produtos-e-segmentos",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "totvs-fluig",
+      "nome": "TOTVS Fluig",
+      "fornecedor": "TOTVS",
+      "tipo": "TOTVS",
+      "apelidos": [
+        "Fluig",
+        "TOTVS Fluig"
+      ],
+      "segmento": "BPM",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/fluig/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "totvs-winthor",
+      "nome": "TOTVS Distribuição e Varejo – Linha Winthor",
+      "fornecedor": "TOTVS",
+      "tipo": "TOTVS",
+      "apelidos": [
+        "Winthor",
+        "TOTVS Winthor"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://produtos.totvs.com/ficha-tecnica/tudo-sobre-o-totvs-distribuicao-e-varejo-linha-winthor/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "sankhya-erp",
+      "nome": "ERP Sankhya",
+      "fornecedor": "Sankhya",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "ERP Sankhya",
+        "Sankhya ERP"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://www.sankhya.com.br/software-de-gestao-erp/erp-para-gestao-empresarial/produtos/sankhya/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "sankhya",
+      "nome": "Produto não especificado",
+      "fornecedor": "Sankhya",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "Sankhya"
+      ],
+      "segmento": null,
+      "fontes": [
+        {
+          "url": "https://www.sankhya.com.br/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "omie-erp",
+      "nome": "ERP Omie",
+      "fornecedor": "Omie",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "ERP Omie",
+        "Omie ERP"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://www.omie.com.br/sistema-erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "omie",
+      "nome": "Produto não especificado",
+      "fornecedor": "Omie",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "Omie"
+      ],
+      "segmento": null,
+      "fontes": [
+        {
+          "url": "https://www.omie.com.br/sistema-erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "oracle-netsuite",
+      "nome": "Oracle NetSuite",
+      "fornecedor": "Oracle",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "NetSuite",
+        "Oracle NetSuite"
+      ],
+      "segmento": "ERP",
+      "fontes": [
+        {
+          "url": "https://www.netsuite.com/portal/home.shtml",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "id": "oracle",
+      "nome": "Produto não especificado",
+      "fornecedor": "Oracle",
+      "tipo": "CONCORRENTE",
+      "apelidos": [
+        "Oracle"
+      ],
+      "segmento": null,
+      "fontes": [
+        {
+          "url": "https://www.netsuite.com/portal/assets/pdf/ds-netsuite.pdf",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    }
+  ],
+  "concorrencias": [
+    {
+      "produtoId": "totvs-protheus",
+      "concorrenteId": "sap-b1",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sap.com/brazil/products/erp/business-one.html",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-protheus",
+      "concorrenteId": "senior-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://site.senior.com.br/erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-protheus",
+      "concorrenteId": "sankhya-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sankhya.com.br/software-de-gestao-erp/erp-para-gestao-empresarial/produtos/sankhya/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-protheus",
+      "concorrenteId": "omie-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.omie.com.br/sistema-erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-protheus",
+      "concorrenteId": "oracle-netsuite",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.netsuite.com/portal/home.shtml",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-datasul",
+      "concorrenteId": "sap-b1",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sap.com/brazil/products/erp/business-one.html",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-datasul",
+      "concorrenteId": "senior-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://site.senior.com.br/erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-datasul",
+      "concorrenteId": "sankhya-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sankhya.com.br/software-de-gestao-erp/erp-para-gestao-empresarial/produtos/sankhya/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-datasul",
+      "concorrenteId": "omie-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.omie.com.br/sistema-erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-datasul",
+      "concorrenteId": "oracle-netsuite",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.netsuite.com/portal/home.shtml",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-rm",
+      "concorrenteId": "sap-b1",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sap.com/brazil/products/erp/business-one.html",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-rm",
+      "concorrenteId": "senior-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://site.senior.com.br/erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-rm",
+      "concorrenteId": "sankhya-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sankhya.com.br/software-de-gestao-erp/erp-para-gestao-empresarial/produtos/sankhya/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-rm",
+      "concorrenteId": "omie-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.omie.com.br/sistema-erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-rm",
+      "concorrenteId": "oracle-netsuite",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.netsuite.com/portal/home.shtml",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-logix",
+      "concorrenteId": "sap-b1",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sap.com/brazil/products/erp/business-one.html",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-logix",
+      "concorrenteId": "senior-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://site.senior.com.br/erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-logix",
+      "concorrenteId": "sankhya-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sankhya.com.br/software-de-gestao-erp/erp-para-gestao-empresarial/produtos/sankhya/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-logix",
+      "concorrenteId": "omie-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.omie.com.br/sistema-erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-logix",
+      "concorrenteId": "oracle-netsuite",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://www.totvs.com/blog/erp/erps-da-totvs/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.netsuite.com/portal/home.shtml",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-winthor",
+      "concorrenteId": "sap-b1",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://produtos.totvs.com/ficha-tecnica/tudo-sobre-o-totvs-distribuicao-e-varejo-linha-winthor/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sap.com/brazil/products/erp/business-one.html",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-winthor",
+      "concorrenteId": "senior-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://produtos.totvs.com/ficha-tecnica/tudo-sobre-o-totvs-distribuicao-e-varejo-linha-winthor/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://site.senior.com.br/erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-winthor",
+      "concorrenteId": "sankhya-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://produtos.totvs.com/ficha-tecnica/tudo-sobre-o-totvs-distribuicao-e-varejo-linha-winthor/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.sankhya.com.br/software-de-gestao-erp/erp-para-gestao-empresarial/produtos/sankhya/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-winthor",
+      "concorrenteId": "omie-erp",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://produtos.totvs.com/ficha-tecnica/tudo-sobre-o-totvs-distribuicao-e-varejo-linha-winthor/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.omie.com.br/sistema-erp/",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    },
+    {
+      "produtoId": "totvs-winthor",
+      "concorrenteId": "oracle-netsuite",
+      "criterio": "Mesmo segmento ERP; potencial alternativa comercial, sem comprovar comparação do cliente.",
+      "natureza": "REFERENCIA_CATALOGO_INFERIDA_POR_SEGMENTO",
+      "fontes": [
+        {
+          "url": "https://produtos.totvs.com/ficha-tecnica/tudo-sobre-o-totvs-distribuicao-e-varejo-linha-winthor/",
+          "revisadoEm": "2026-10-06"
+        },
+        {
+          "url": "https://www.netsuite.com/portal/home.shtml",
+          "revisadoEm": "2026-10-06"
+        }
+      ]
+    }
+  ]
+}

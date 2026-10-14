@@ -29,7 +29,8 @@ public record InsightsResponseDto(
 
         LocalDateTime dataCriacao,
         IndividualAnalysisDto analiseIndividual,
-        String estadoAvaliacao
+        String estadoAvaliacao,
+        Boolean historicoDisponivel
 ) {
 
 }

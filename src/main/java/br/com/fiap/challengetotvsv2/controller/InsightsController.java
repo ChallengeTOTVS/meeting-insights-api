@@ -35,6 +35,13 @@ public class InsightsController {
         return insightsService.atualizarAvaliacao(reuniaoId);
     }
 
+    public record RetryRequest(String retryToken) {}
+
+    @PostMapping("/{reuniaoId}/insights/tentar-novamente")
+    public InsightsResponseDto tentarNovamente(@PathVariable UUID reuniaoId, @RequestBody RetryRequest request) {
+        return insightsService.tentarNovamente(reuniaoId, request.retryToken());
+    }
+
     @PostMapping("/{reuniaoId}/insights")
     @ResponseStatus(HttpStatus.CREATED)
     public InsightsResponseDto gerarInsights(
