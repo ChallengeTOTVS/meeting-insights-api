@@ -4,7 +4,9 @@ import br.com.fiap.challengetotvsv2.dto.error.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -107,5 +109,34 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
 
-}
+    @ExceptionHandler(CredenciaisInvalidasException.class)
+    public ResponseEntity<ErrorResponse> handleCredenciaisInvalidas(CredenciaisInvalidasException exception) {
+        return erro(HttpStatus.UNAUTHORIZED, exception.getMessage());
+    }
 
+    /** Erros lançados com status explícito (ex.: 409 ao remover o próprio acesso de admin, 502 da IA). */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException exception) {
+        HttpStatus status = HttpStatus.resolve(exception.getStatusCode().value());
+        return erro(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status,
+                exception.getReason() == null ? status.getReasonPhrase() : exception.getReason());
+    }
+
+    /** Validação do corpo da requisição (@Valid): devolve a primeira mensagem legível. */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidacao(MethodArgumentNotValidException exception) {
+        String mensagem = exception.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                .findFirst().orElse("Dados inválidos");
+        return erro(HttpStatus.BAD_REQUEST, mensagem);
+    }
+
+    private ResponseEntity<ErrorResponse> erro(HttpStatus status, String mensagem) {
+        return ResponseEntity.status(status).body(ErrorResponse.builder()
+                .status(status.value())
+                .message(mensagem)
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
+}

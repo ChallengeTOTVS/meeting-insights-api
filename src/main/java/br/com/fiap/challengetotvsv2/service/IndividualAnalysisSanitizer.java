@@ -59,7 +59,9 @@ public final class IndividualAnalysisSanitizer {
         if (!found(text, seller) || sellerRefs.isEmpty()) seller = null;
         if (seller != null) {
             final String name = seller;
-            if (sellerRefs.stream().noneMatch(id -> found(IndividualAnalysisValidator.normalize(evidence.get(id).trecho()), name))) seller = null;
+            // A evidência confirma o vendedor se cita o nome OU se é uma fala dele ("Camila Rocha: ...").
+            if (sellerRefs.stream().noneMatch(id -> found(IndividualAnalysisValidator.normalize(evidence.get(id).trecho()), name)
+                    || TranscriptSpeakers.same(TranscriptSpeakers.speakerOf(transcript, evidence.get(id).trecho()), name))) seller = null;
         }
         if (seller == null) sellerRefs = List.of();
         var interactions = new ArrayList<Interacao>();

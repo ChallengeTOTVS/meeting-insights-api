@@ -121,6 +121,11 @@ public class ReuniaoService {
     }
 
     public ReuniaoResponseDto buscarReuniaoPorId(UUID id) {
+        // Administrador pode ler qualquer reunião da equipe (somente leitura).
+        if (br.com.fiap.challengetotvsv2.security.AuthUtils.isAdmin()) {
+            return converterParaResponse(reuniaoRepository.findComRelacoesById(id)
+                    .orElseThrow(() -> new ReuniaoNotFoundException(id)));
+        }
         String emailUsuario = SecurityContextHolder
                 .getContext()
                 .getAuthentication()

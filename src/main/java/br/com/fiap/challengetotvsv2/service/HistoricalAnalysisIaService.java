@@ -42,6 +42,8 @@ public class HistoricalAnalysisIaService {
                         Uma lista vazia fora dessas categorias significa análise concluída sem achados.
                         compromissos: responsavel, prazo (grafia literal ou null), situacao explícita ou null.
                         Para qualidadeVendedor, identifique participantes por evidência, nunca pelo cadastrante.
+                        Se o vendedor aparece nas falas, preencha qualidadeVendedor comparando a atuação nas reuniões
+                        anteriores com a ATUAL, e cite em referencias ao menos um trecho anterior (H...) e um ATUAL.
                         Sem vendedor identificável, notas null e justificativa 'Não foi possível avaliar'.
                         Use notas null; explique evolução de respostas completas, parciais, não respondidas,
                         resolução e acompanhamento sem confundir promessa com resposta completa.

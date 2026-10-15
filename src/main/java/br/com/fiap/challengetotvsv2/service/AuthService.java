@@ -2,6 +2,7 @@ package br.com.fiap.challengetotvsv2.service;
 
 import br.com.fiap.challengetotvsv2.dto.auth.LoginRequestDto;
 import br.com.fiap.challengetotvsv2.dto.auth.LoginResponseDto;
+import br.com.fiap.challengetotvsv2.exception.CredenciaisInvalidasException;
 import br.com.fiap.challengetotvsv2.model.UsuarioEntity;
 import br.com.fiap.challengetotvsv2.repository.IUsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +18,12 @@ public class AuthService {
     private final JwtService jwtService;
 
     public LoginResponseDto autenticar(LoginRequestDto loginRequestDto) {
-        UsuarioEntity usuario = usuarioRepository.findByEmail(loginRequestDto.email()).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        // Mesma mensagem para e-mail inexistente e senha errada: não revela quais e-mails existem.
+        UsuarioEntity usuario = usuarioRepository.findByEmail(loginRequestDto.email().strip())
+                .orElseThrow(CredenciaisInvalidasException::new);
 
         if (!passwordEncoder.matches(loginRequestDto.senha(), usuario.getSenha())) {
-            throw new RuntimeException("Email ou senha inválidos");
+            throw new CredenciaisInvalidasException();
         }
 
         String token = jwtService.gerarToken(usuario);

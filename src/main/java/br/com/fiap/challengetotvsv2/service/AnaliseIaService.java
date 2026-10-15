@@ -32,8 +32,11 @@ public class AnaliseIaService {
         evidenciasVendedor sustenta a identificação. Use em vendedor a grafia exata na transcrição.
         resultadoReuniao e situacaoCliente: conclusões curtas com referências. Ausência de evidência
         deve ter texto iniciado por 'Não foi possível avaliar' e referencias=[].
-        interacoes: uma linha por assunto ou pergunta, IDs I1, I2...; vincule pergunta do cliente,
-        resposta do vendedor, tratamentoObjecao (null se não houver) e situação do assunto.
+        interacoes: uma linha por pergunta, dúvida, objeção ou pedido feito pelo CLIENTE, IDs I1, I2...;
+        vincule pergunta do cliente, resposta do vendedor, tratamentoObjecao (null se não houver) e situação.
+        Perguntas que o VENDEDOR faz ao cliente (descoberta, "como foi?", "e sobre X?") NÃO viram interação.
+        respostaVendedor = a fala do vendedor que responde ao que o cliente perguntou; nunca uma nova
+        pergunta do vendedor, um agradecimento ou uma mudança de assunto. Sem resposta assim: null.
         resposta: COMPLETA, PARCIAL, NAO_RESPONDIDA, NAO_SE_APLICA ou NAO_FOI_POSSIVEL_AVALIAR.
         situacao: RESOLVIDO, PENDENTE, ACOMPANHAMENTO ou NAO_FOI_POSSIVEL_AVALIAR.
         Mencionar não resolve. Prometer responder depois é NAO_RESPONDIDA e ACOMPANHAMENTO;

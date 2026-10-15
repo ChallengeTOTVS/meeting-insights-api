@@ -25,8 +25,15 @@ public class RagService {
 
     private static final String DOCUMENT_TYPE = "TRANSCRICAO";
     private static final int CHUNK_SIZE = 500;
-    private static final int TOP_K_PER_QUERY = 4;
-    private static final double SIMILARITY_THRESHOLD = 0.55;
+    /*
+     * Histórico de UM cliente com UM vendedor costuma ser pequeno (5 reuniões ≈ 12 trechos).
+     * Antes: 4 trechos por consulta, corte de similaridade 0,55 e no máximo 8 trechos → partes
+     * inteiras das reuniões anteriores (compromissos, preços, falas do vendedor) ficavam de fora
+     * e a IA não tinha evidência para comparar. Agora: até 24 trechos (≈ 12 mil tokens), sem corte
+     * de similaridade; se o cliente tiver mais que isso, ficam os mais relevantes.
+     */
+    private static final int MAX_HISTORY_CHUNKS = 24;
+    private static final double SIMILARITY_THRESHOLD = 0.0;
 
     private final VectorStore vectorStore;
     private final IRagIndexRepository ragIndexRepository;
@@ -87,13 +94,18 @@ public class RagService {
             for (String consulta : consultasHistoricas(reuniao)) {
                 List<Document> documentos = vectorStore.similaritySearch(SearchRequest.builder()
                         .query(consulta)
-                        .topK(TOP_K_PER_QUERY)
+                        .topK(MAX_HISTORY_CHUNKS)
                         .similarityThreshold(SIMILARITY_THRESHOLD)
                         .filterExpression(expressaoFiltro)
                         .build());
                 documentos.forEach(documento -> encontrados.putIfAbsent(documento.getId(), documento));
             }
-            return encontrados.values().stream().limit(8).toList();
+            // Ordem cronológica (reunião → trecho) para a IA ler a negociação na sequência.
+            return encontrados.values().stream().limit(MAX_HISTORY_CHUNKS)
+                    .sorted(Comparator
+                            .comparing((Document d) -> String.valueOf(d.getMetadata().getOrDefault("dataReuniao", "")))
+                            .thenComparingInt(d -> chunkIndex(d)))
+                    .toList();
         } catch (Exception exception) {
             throw new RagVectorStoreException("Não foi possível recuperar o histórico no pgvector", exception);
         }
@@ -128,6 +140,16 @@ public class RagService {
             chunks.add(new Document(idDoChunk(reuniao.getId(), hashTranscricao, indice), chunk.getText(), metadadosChunk));
         }
         return chunks;
+    }
+
+    private static int chunkIndex(Document documento) {
+        Object valor = documento.getMetadata().get("chunkIndex");
+        if (valor instanceof Number numero) return numero.intValue();
+        try {
+            return valor == null ? 0 : Integer.parseInt(valor.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private List<String> consultasHistoricas(ReuniaoEntity reuniao) {

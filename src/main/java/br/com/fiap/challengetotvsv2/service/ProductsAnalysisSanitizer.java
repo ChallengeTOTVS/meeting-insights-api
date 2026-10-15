@@ -15,14 +15,35 @@ public final class ProductsAnalysisSanitizer {
     private static List<String> refs(List<String> ids, Map<String, Evidencia> evidence) {
         return list(ids).stream().filter(evidence::containsKey).distinct().toList();
     }
+    // Mantém o achado se sobrar ao menos uma evidência válida; referências inválidas são removidas.
     private static Achado claim(Achado c, Map<String, Evidencia> evidence) {
-        if (c == null || !present(c.texto()) || c.referencias() == null || c.referencias().isEmpty()
-                || !evidence.keySet().containsAll(c.referencias())) return null;
-        return new Achado(c.texto(), refs(c.referencias(), evidence));
+        if (c == null || !present(c.texto())) return null;
+        var valid = refs(c.referencias(), evidence);
+        return valid.isEmpty() ? null : new Achado(c.texto(), valid);
     }
     private static List<Achado> claims(List<Achado> items, Map<String, Evidencia> evidence) {
         return list(items).stream().map(c -> claim(c, evidence)).filter(Objects::nonNull).toList();
     }
+    /*
+     * O trecho fala deste produto?
+     * Sim, se cita um apelido do produto ("ERP Sankhya"). Também sim se cita só o fornecedor
+     * ("o Sankhya mandou proposta") E o produto foi nomeado explicitamente em alguma fonte da
+     * mesma análise. Antes, só o nome completo valia, e falas naturais como "o Omie travou" eram
+     * descartadas, deixando Produtos e Concorrentes vazios. Sem o produto nomeado em lugar
+     * nenhum, "SAP" sozinho continua NÃO virando "SAP Business One" (regra do catálogo).
+     */
+    static boolean refersTo(Entrada entry, String quotes, String allText, Catalogo catalog) {
+        if (entry.apelidos().stream().anyMatch(alias -> CommercialCatalogService.mentions(quotes, alias))) return true;
+        if (!present(entry.fornecedor()) || !CommercialCatalogService.mentions(quotes, entry.fornecedor())) return false;
+        // Só vale se este for o ÚNICO produto daquele fornecedor nomeado na conversa
+        // (ex.: "a TOTVS" é ambíguo quando Winthor e Fluig aparecem).
+        var namedFromSupplier = catalog.entradas().stream()
+                .filter(e -> entry.fornecedor().equals(e.fornecedor()) && !"Produto não especificado".equals(e.nome()))
+                .filter(e -> e.apelidos().stream().anyMatch(alias -> CommercialCatalogService.mentions(allText, alias)))
+                .map(Entrada::id).toList();
+        return namedFromSupplier.equals(List.of(entry.id()));
+    }
+
     public static ProductsAnalysisDto sanitize(ProductsAnalysisDto a, Catalogo catalog, Map<String, Source> sources) {
         if (a == null) return new ProductsAnalysisDto(Estado.EVIDENCIAS_INSUFICIENTES, catalog, List.of(), List.of(), List.of());
         var evidence = new LinkedHashMap<String, Evidencia>();
@@ -30,28 +51,40 @@ public final class ProductsAnalysisSanitizer {
             var src = sources.get(e.referencia());
             if (src == null || !present(e.id()) || !present(e.trecho())
                     || !IndividualAnalysisValidator.normalize(src.text()).contains(IndividualAnalysisValidator.normalize(e.trecho()))) continue;
-            String participant = present(e.participante()) && e.trecho().contains(e.participante()) ? e.participante() : null;
+            // Quem falou vem da transcrição (rótulo "Nome:" da linha), não do palpite da IA.
+            String speaker = TranscriptSpeakers.speakerOf(src.text(), e.trecho());
+            String participant = speaker != null ? speaker
+                    : present(e.participante()) && e.trecho().contains(e.participante()) ? e.participante() : null;
             evidence.putIfAbsent(e.id(), new Evidencia(e.id(), e.referencia(), e.trecho(), participant, src.date()));
         }
+        // Texto de todas as fontes: serve para saber se o produto foi nomeado em algum momento.
+        String allText = sources.values().stream().map(Source::text).filter(Objects::nonNull)
+                .reduce("", (x, y) -> x + "\n" + y);
         var products = new ArrayList<Produto>();
         boolean partial = false;
         for (var p : list(a.produtos())) {
             var observations = new ArrayList<Observacao>();
             var entry = catalog.entradas().stream().filter(e -> e.id().equals(p.catalogoId())).findFirst().orElse(null);
             for (var o : list(p.observacoes())) {
-                var ids = refs(o.referencias(), evidence);
                 var context = claim(o.contexto(), evidence);
-                if (ids.isEmpty() || context == null || !ids.containsAll(context.referencias())) continue;
+                if (context == null) continue;
+                // As evidências do contexto também sustentam a observação.
+                var ids = new ArrayList<>(refs(o.referencias(), evidence));
+                context.referencias().stream().filter(id -> !ids.contains(id)).forEach(ids::add);
                 String quotes = ids.stream().map(id -> evidence.get(id).trecho()).reduce("", (x, y) -> x + "\n" + y);
                 boolean mentioned = entry != null
-                        ? entry.apelidos().stream().anyMatch(alias -> CommercialCatalogService.mentions(quotes, alias))
+                        ? refersTo(entry, quotes, allText, catalog)
                         : ("Produto não especificado".equals(p.nome())
                             ? CommercialCatalogService.mentions(quotes, p.fornecedor())
                             : CommercialCatalogService.mentions(quotes, p.nome()));
                 if (!mentioned || (entry == null && present(p.fornecedor())
                         && !CommercialCatalogService.mentions(quotes, p.fornecedor()))) continue;
-                String participant = present(o.participante()) && ids.stream().anyMatch(id ->
-                        Objects.equals(evidence.get(id).participante(), o.participante())) ? o.participante() : null;
+                var speakers = ids.stream().map(id -> evidence.get(id).participante()).filter(Objects::nonNull).distinct().toList();
+                String participant = present(o.participante())
+                        ? speakers.stream().filter(sp -> TranscriptSpeakers.same(sp, o.participante())).findFirst().orElse(null)
+                        : null;
+                // Todas as evidências da observação são da mesma pessoa: é ela.
+                if (participant == null && speakers.size() == 1) participant = speakers.get(0);
                 var observationEvidence = new LinkedHashMap<String, Evidencia>();
                 ids.forEach(id -> observationEvidence.put(id, evidence.get(id)));
                 observations.add(new Observacao(participant,
@@ -78,7 +111,7 @@ public final class ProductsAnalysisSanitizer {
                 var entry = catalog.entradas().stream().filter(e -> e.id().equals(p.catalogoId())).findFirst().orElse(null);
                 return c.referencias().stream().allMatch(id -> {
                     String quote = evidence.get(id).trecho();
-                    return entry != null ? entry.apelidos().stream().anyMatch(alias -> CommercialCatalogService.mentions(quote, alias))
+                    return entry != null ? refersTo(entry, quote, allText, catalog)
                             : present(p.nome()) && !"Produto não especificado".equals(p.nome())
                                 && CommercialCatalogService.mentions(quote, p.nome());
                 });

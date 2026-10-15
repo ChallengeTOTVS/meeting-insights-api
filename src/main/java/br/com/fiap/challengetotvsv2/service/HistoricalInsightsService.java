@@ -41,7 +41,7 @@ public class HistoricalInsightsService {
                 .map(this::paraHistoricoReuniao)
                 .toList();
 
-        List<Document> contexto = ragService.buscarContextoHistorico(reuniao);
+        List<Document> contexto = comReferenciasCurtas(ragService.buscarContextoHistorico(reuniao));
         if (contexto.isEmpty()) {
             return new HistoricalInsightsResponseDto(
                     reuniao.getId(),
@@ -68,6 +68,24 @@ public class HistoricalInsightsService {
                 analise,
                 evidencias
         );
+    }
+
+    /**
+     * Troca a referência longa do índice ("R-<uuid de 36 caracteres>-C-0") por H1, H2, H3...
+     *
+     * Por quê: a IA precisa repetir a referência exata em cada conclusão, e o filtro de segurança
+     * descarta qualquer conclusão com referência inexistente. Com UUIDs, um caractere copiado errado
+     * apagava compromissos, desempenho e produtos inteiros. Códigos curtos eliminam esse erro.
+     */
+    static List<Document> comReferenciasCurtas(List<Document> documentos) {
+        var resultado = new java.util.ArrayList<Document>();
+        for (int i = 0; i < documentos.size(); i++) {
+            Document original = documentos.get(i);
+            var metadados = new java.util.HashMap<>(original.getMetadata());
+            metadados.put("referencia", "H" + (i + 1));
+            resultado.add(new Document(original.getId(), original.getText(), metadados));
+        }
+        return resultado;
     }
 
     private UsuarioEntity usuarioAutenticado() {

@@ -33,13 +33,20 @@ public class InsightsService {
         return reuniaoRepository.findByIdAndUsuarioId(id, user.getId())
                 .orElseThrow(() -> new ReuniaoNotFoundException(id));
     }
+    /** Leitura: o dono da reunião ou um administrador (somente leitura). Gerar continua só com o dono. */
+    private ReuniaoEntity readable(UUID id) {
+        if (br.com.fiap.challengetotvsv2.security.AuthUtils.isAdmin()) {
+            return reuniaoRepository.findComRelacoesById(id).orElseThrow(() -> new ReuniaoNotFoundException(id));
+        }
+        return authorized(id);
+    }
     public InsightsResponseDto buscarInsightsPorReuniao(UUID id) {
-        authorized(id);
+        readable(id);
         return converterParaResponse(insightRepository.findByReuniaoId(id)
                 .orElseThrow(() -> new InsightsNotFoundException(id)));
     }
     public State consultar(UUID id) {
-        var meeting = authorized(id);
+        var meeting = readable(id);
         var saved = insightRepository.findByReuniaoId(id).orElse(null);
         String status = jobs.status(id);
         if (saved != null && saved.getAnaliseIndividualJson() != null && !"PROCESSANDO".equals(status)) status = "CONCLUIDO";

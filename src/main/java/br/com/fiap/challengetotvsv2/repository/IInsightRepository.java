@@ -22,4 +22,13 @@ public interface IInsightRepository extends JpaRepository<InsightEntity, UUID> {
             @Param("clienteId") UUID clienteId,
             @Param("usuarioId") UUID usuarioId
     );
+
+    /** Todas as análises com reunião, cliente e vendedor (visão da equipe; nenhuma IA é chamada). */
+    @Query("""
+            select insight from InsightEntity insight
+            join fetch insight.reuniao reuniao
+            join fetch reuniao.cliente
+            join fetch reuniao.usuario
+            """)
+    List<InsightEntity> findAllComReuniao();
 }

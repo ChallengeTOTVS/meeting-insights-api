@@ -45,5 +45,21 @@ public interface IReuniaoRepository extends JpaRepository<ReuniaoEntity, UUID> {
             @Param("usuarioId") UUID usuarioId
     );
 
+    /** Uma reunião com cliente e vendedor já carregados (uso do administrador e do assistente). */
+    @Query("""
+            select reuniao from ReuniaoEntity reuniao
+            join fetch reuniao.cliente
+            join fetch reuniao.usuario
+            where reuniao.id = :id
+            """)
+    Optional<ReuniaoEntity> findComRelacoesById(@Param("id") UUID id);
 
+    /** Todas as reuniões da equipe, mais recentes primeiro (uso do administrador e do assistente). */
+    @Query("""
+            select reuniao from ReuniaoEntity reuniao
+            join fetch reuniao.cliente
+            join fetch reuniao.usuario
+            order by reuniao.dataReuniao desc
+            """)
+    List<ReuniaoEntity> findAllComRelacoes();
 }

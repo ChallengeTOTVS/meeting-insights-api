@@ -58,8 +58,16 @@ public class PersistentHistoryService {
                 .orElseThrow(() -> new ReuniaoNotFoundException(id));
     }
 
+    /** Leitura: o dono da reunião ou um administrador. Gerar continua restrito ao dono. */
+    private ReuniaoEntity readable(UUID id) {
+        if (br.com.fiap.challengetotvsv2.security.AuthUtils.isAdmin()) {
+            return meetings.findComRelacoesById(id).orElseThrow(() -> new ReuniaoNotFoundException(id));
+        }
+        return authorized(id);
+    }
+
     public State consultar(UUID id) {
-        var meeting = authorized(id);
+        var meeting = readable(id);
         var jobs = jdbc.query("SELECT CASE WHEN status='PROCESSANDO' AND criado_em < CURRENT_TIMESTAMP - INTERVAL '15 minutes' THEN 'INTERROMPIDO' ELSE status END AS status, resultado, etapa FROM historical_analysis_job WHERE reuniao_id = ?",
                 (rs, n) -> new Job(rs.getString(1), rs.getString(2), rs.getString(3)), id);
         if (jobs.isEmpty()) return new State("NAO_GERADO", base(meeting), "A evolução disponível já pode ser consultada. A análise por IA é opcional.", "AGUARDANDO");
